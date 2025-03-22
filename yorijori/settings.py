@@ -1,0 +1,77 @@
+import os
+from pathlib import Path
+from django.core.management.utils import get_random_secret_key
+
+# BASE_DIR 설정
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 보안을 위해 새로운 SECRET_KEY 생성 (실제 운영에서는 환경 변수로 관리 권장)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
+
+# DEBUG 모드 설정 (운영 환경에서는 False로 설정해야 함)
+DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
+
+# ALLOWED_HOSTS 설정 (배포 시 도메인 추가 필요)
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split()
+
+# MySQL 데이터베이스 설정
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv("MYSQL_DATABASE", "yorijori_db"),
+        'USER': os.getenv("MYSQL_USER", "admin"),
+        'PASSWORD': os.getenv("MYSQL_PASSWORD", "yourpassword"),
+        'HOST': os.getenv("MYSQL_HOST", "your-rds-endpoint"),
+        'PORT': os.getenv("MYSQL_PORT", "3306"),
+        'OPTIONS': {
+            'sql_mode': 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION',
+        },
+    }
+}
+
+# INSTALLED_APPS (기본 앱 + 추가 앱 설정)
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # 추가 앱 (예: 'yorijori' 프로젝트 앱)
+    'yorijori',
+    'recipes',    
+    'rest_framework',
+]
+
+# MIDDLEWARE 설정
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+# URL 설정
+ROOT_URLCONF = 'yorijori.urls'
+
+# WSGI 애플리케이션
+WSGI_APPLICATION = 'yorijori.wsgi.application'
+
+# STATIC & MEDIA 설정
+STATIC_URL = '/static/'
+MEDIA_URL = '/media/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+MEDIA_ROOT = BASE_DIR / "media"
+
+# TIME_ZONE & LANGUAGE 설정
+LANGUAGE_CODE = 'ko-kr'
+TIME_ZONE = 'Asia/Seoul'
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+# DEFAULT_AUTO_FIELD 설정
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
