@@ -1,12 +1,17 @@
 import os
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
+from dotenv import load_dotenv
+
+
 
 # BASE_DIR 설정
 BASE_DIR = Path(__file__).resolve().parent.parent
+# .env 파일 로드
+load_dotenv()
 
 # 보안을 위해 새로운 SECRET_KEY 생성 (실제 운영에서는 환경 변수로 관리 권장)
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", get_random_secret_key())
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # DEBUG 모드 설정 (운영 환경에서는 False로 설정해야 함)
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
@@ -18,11 +23,11 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("MYSQL_DATABASE", "yorijori_db"),
-        'USER': os.getenv("MYSQL_USER", "admin"),
-        'PASSWORD': os.getenv("MYSQL_PASSWORD", "yourpassword"),
-        'HOST': os.getenv("MYSQL_HOST", "your-rds-endpoint"),
-        'PORT': os.getenv("MYSQL_PORT", "3306"),
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
+        'HOST': os.getenv("DB_HOST"),
+        'PORT': os.getenv("DB_PORT", "3306"),
         'OPTIONS': {
             'sql_mode': 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION',
         },
@@ -63,7 +68,7 @@ WSGI_APPLICATION = 'yorijori.wsgi.application'
 # STATIC & MEDIA 설정
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+#STATICFILES_DIRS = [BASE_DIR / "static"]
 MEDIA_ROOT = BASE_DIR / "media"
 
 # TIME_ZONE & LANGUAGE 설정
@@ -75,3 +80,20 @@ USE_TZ = True
 
 # DEFAULT_AUTO_FIELD 설정
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / "templates"],  
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
