@@ -1,22 +1,42 @@
 
 from django.db import models  
+from ingredients.models import Ingredients
 
-class Recipe(models.Model):
-    rcp_seq = models.IntegerField(primary_key=True)
-    rcp_nm = models.CharField(max_length=255)
-    rcp_way2 = models.CharField(max_length=100)
-    rcp_pat2 = models.CharField(max_length=100)
-    info_wgt = models.IntegerField( null=True, blank=True)
-    info_eng = models.IntegerField( null=True, blank=True)
-    info_car = models.IntegerField( null=True, blank=True)
-    info_pro = models.IntegerField( null=True, blank=True)
-    info_fat = models.IntegerField( null=True, blank=True)
-    info_na = models.IntegerField( null=True, blank=True)
-    hash_tag = models.TextField(null=True, blank=True)
-    att_file_no_main = models.TextField(null=True, blank=True)
-    att_file_no_mk = models.TextField(null=True, blank=True)
-    rcp_parts_dtls = models.TextField(null=True, blank=True)
 
-    def __str__(self):
-        return self.rcp_nm
+class Recipes(models.Model):
+    rcp_number = models.IntegerField(primary_key=True)
+    rcp_name = models.CharField(max_length=40, blank=True, null=True)
+    rcp_method = models.CharField(max_length=200, blank=True, null=True)
+    rcp_keyword = models.CharField(max_length=200, blank=True, null=True)
+    rcp_allergy = models.CharField(max_length=200, blank=True, null=True)
+    rcp_type = models.CharField(max_length=200, blank=True, null=True)
+    rcp_ingredient = models.TextField(blank=True, null=True)
+    rcp_cooktime = models.CharField(max_length=200, blank=True, null=True)
+    rcp_picture = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'Recipes'
+
+
+class RecipeSteps(models.Model):
+    step_id = models.AutoField(primary_key=True)
+    rcp_number = models.ForeignKey(Recipes, models.DO_NOTHING, db_column='rcp_number', blank=True, null=True)
+    step_order = models.IntegerField()
+    instruction = models.TextField()
+    image_url = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'Recipe_Steps'
+
+class RecipesIngredients(models.Model):
+    recipe_ingredient_id = models.AutoField(primary_key=True)
+    rcp_number = models.ForeignKey(Recipes, models.DO_NOTHING, db_column='rcp_number', blank=True, null=True)
+    ingredient = models.ForeignKey(Ingredients, models.DO_NOTHING, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'Recipes_Ingredients'
+
 

@@ -19,6 +19,7 @@ DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 # ALLOWED_HOSTS 설정 (배포 시 도메인 추가 필요)
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 
+AUTH_USER_MODEL = 'users.Users'
 # MySQL 데이터베이스 설정
 DATABASES = {
     'default': {
@@ -46,6 +47,13 @@ INSTALLED_APPS = [
     'yorijori',
     'recipes',    
     'rest_framework',
+    'favorite',
+    'notification', 
+    'users',
+    'ingredients',
+    'shopping',
+
+    
 ]
 
 # MIDDLEWARE 설정
@@ -81,6 +89,8 @@ USE_TZ = True
 # DEFAULT_AUTO_FIELD 설정
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+import pymysql
+pymysql.install_as_MySQLdb()
 
 TEMPLATES = [
     {
