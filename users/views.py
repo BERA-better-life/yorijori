@@ -1,2 +1,2 @@
 from django.shortcuts import render
-# test
+# testㅁㅇ
