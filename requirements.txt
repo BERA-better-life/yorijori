@@ -2,3 +2,5 @@ Django==4.2.20
 djangorestframework==3.16.0
 djangorestframework_simplejwt==5.5.0
 python-dotenv==1.1.0
+mysqlclient>=2.2.0
+pymysql>=1.1.0
