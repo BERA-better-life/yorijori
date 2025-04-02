@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # .env 파일 로드
 load_dotenv()
 
-# 보안을 위해 새로운 SECRET_KEY 생성 (실제 운영에서는 환경 변수로 관리 권장)
-SECRET_KEY = os.getenv('SECRET_KEY')
+# 보안을 위해 새로운 SECRET_KEY 생성 (실제 운영에서는 환경 변수로 관리 권장) + .env 없을 때도 기본 키 자동 생성
+SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 
 # DEBUG 모드 설정 (운영 환경에서는 False로 설정해야 함)
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
@@ -77,6 +77,7 @@ WSGI_APPLICATION = 'yorijori.wsgi.application'
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 #STATICFILES_DIRS = [BASE_DIR / "static"]
+
 MEDIA_ROOT = BASE_DIR / "media"
 
 # TIME_ZONE & LANGUAGE 설정
@@ -107,3 +108,18 @@ TEMPLATES = [
         },
     },
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "user_id",
+}
