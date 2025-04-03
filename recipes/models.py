@@ -11,9 +11,10 @@ class Recipes(models.Model):
     rcp_allergy = models.CharField(max_length=200, blank=True, null=True)
     rcp_type = models.CharField(max_length=200, blank=True, null=True)
     rcp_ingredient = models.TextField(blank=True, null=True)
-    rcp_cooktime = models.CharField(max_length=200, blank=True, null=True)
+    rcp_cooktime = models.IntegerField(blank=True, null=True)
     rcp_picture = models.TextField(blank=True, null=True)
-
+    rcp_laststep = models.IntegerField(blank=True, null=True)
+    rcp_ingredient_cnt = models.IntegerField(blank=True, null=True)
     class Meta:
         managed = True
         db_table = 'Recipes'
