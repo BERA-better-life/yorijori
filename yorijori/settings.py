@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 
 # BASE_DIR 설정
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 # .env 파일 로드
-load_dotenv()
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # 보안을 위해 새로운 SECRET_KEY 생성 (실제 운영에서는 환경 변수로 관리 권장) + .env 없을 때도 기본 키 자동 생성
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
@@ -21,14 +22,15 @@ ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 
 AUTH_USER_MODEL = 'users.Users'
 # MySQL 데이터베이스 설정
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv("DB_NAME"), 
+        'NAME': 'yorijori_db',
         'USER': os.getenv("DB_USER"),
         'PASSWORD': os.getenv("DB_PASSWORD"),
         'HOST': os.getenv("DB_HOST"),
-        'PORT': os.getenv("DB_PORT", "3306"),
+        'PORT': os.getenv("DB_PORT"),
         'OPTIONS': {
             'sql_mode': 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION',
         },
