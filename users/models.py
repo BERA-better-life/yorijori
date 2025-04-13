@@ -25,11 +25,10 @@ class Users(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, max_length=100)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    expo_push_token = models.CharField(max_length=255, null=True, blank=True) #4/13 추가 
+
 
     objects = UsersManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
-    class Meta:
-        db_table = 'Users'
