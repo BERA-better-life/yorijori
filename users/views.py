@@ -8,6 +8,7 @@ from .serializers import CustomTokenObtainPairSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 
@@ -103,3 +104,19 @@ class AllUsersView(APIView):
     def get(self, request):
         users = Users.objects.all().values("user_id", "username", "email")
         return Response(users, status=status.HTTP_200_OK)
+
+
+# 알림 관련 
+from rest_framework.decorators import api_view, permission_classes
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_expo_token(request):
+    token = request.data.get('token')
+    if not token:
+        return Response({"error": "Expo token is required."}, status=400)
+
+    request.user.expo_push_token = token
+    request.user.save()
+    return Response({"message": "Token saved successfully."})

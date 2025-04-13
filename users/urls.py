@@ -2,7 +2,7 @@
 from django.urls import path
 from .views import RegisterView, CustomTokenObtainPairView, CheckUsernameView, CheckEmailView, DeleteUserView, LogoutView, UserInfoView, AllUsersView
 from rest_framework_simplejwt.views import TokenRefreshView
-
+from .views import save_expo_token # notification
 urlpatterns = [
     path('register', RegisterView.as_view(), name='register'),
     path('login', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -12,4 +12,8 @@ urlpatterns = [
     path('me', UserInfoView.as_view(), name='user-info'),
     path('logout', LogoutView.as_view(), name='logout'),
     path('all', AllUsersView.as_view(), name='all-users'),
+    path('expo-token/', save_expo_token, name='save_expo_token'), #notification
 ]
+
+
+
