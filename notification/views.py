@@ -1,37 +1,51 @@
-from django.shortcuts import render
+from rest_framework.decorators import api_view, permission_classes
 
-# Create your views here.
-from django.utils import timezone
-from datetime import timedelta
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET
-from django.contrib.auth import get_user_model
-from ingredients.models import UserIngredient
+from rest_framework.response import Response
+from datetime import timedelta, date
+from ingredients.models import UserIngredients
+from users.models import Users
+import requests
 
-User = get_user_model()
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 
-@require_GET
-def expiration_alerts_view(request, user_id):
-    today = timezone.now().date()
-    deadline = today + timedelta(days=3)
+@api_view(['POST'])
+def send_expiration_notifications(request):
+    today = date.today()
+    target_date = today + timedelta(days=3)
 
-    try:
-        user = User.objects.get(user_id=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
+    user_ingredients = UserIngredients.objects.select_related('user_id', 'ingredient_id').filter(
+        expiration_date=target_date
+    )
 
-    items = UserIngredient.objects.filter(
-        user=user,
-        expiration_date__range=(today, deadline)
-    ).select_related("ingredient")
+    notified_users = {}
 
-    result = [
-        {
-            "ingredient_name": i.ingredient.ingredient_name,
-            "expiration_date": str(i.expiration_date),
-            "days_left": (i.expiration_date - today).days,
+    for ui in user_ingredients:
+        user = ui.user_id
+        ingredient = ui.ingredient_id
+
+        if not user.expo_push_token:
+            continue
+
+        if user.user_id not in notified_users:
+            notified_users[user.user_id] = {
+                "token": user.expo_push_token,
+                "ingredients": []
+            }
+
+        notified_users[user.user_id]["ingredients"].append(ingredient.ingredient_name)
+
+    for user_id, info in notified_users.items():
+        ingredients_list = ', '.join(info['ingredients'])
+        message = f"다음 재료의 유통기한이 3일 남았어요: {ingredients_list}"
+
+        payload = {
+            "to": info["token"],
+            "sound": "default",
+            "title": "⏰ 유통기한 알림",
+            "body": message
         }
-        for i in items
-    ]
 
-    return JsonResponse({"alerts": result})
+        response = requests.post(EXPO_PUSH_URL, json=payload)
+        print(f"유저 {user_id}에게 알림 전송됨: {response.status_code} - {response.text}")
+
+    return Response({"message": "알림 전송 완료", "total_users": len(notified_users)})
