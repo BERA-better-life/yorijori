@@ -176,3 +176,5 @@ venv/
 
 #security
 echo ".env" >> .gitignore
+
+api_test.http
