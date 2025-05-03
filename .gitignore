@@ -173,6 +173,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 venv/
+myvenv/
 
 #security
 echo ".env" >> .gitignore

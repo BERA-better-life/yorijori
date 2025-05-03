@@ -28,6 +28,10 @@ class UserIngredientsDeleteView(generics.DestroyAPIView):
     def get_queryset(self):
         return UserIngredients.objects.filter(user_id=self.request.user)
 
+    def delete(self, request, *args, **kwargs):
+        super().delete(request, *args, **kwargs)
+        return Response({"message": "재료가 삭제되었습니다."}, status=status.HTTP_200_OK)
+
 
 class ExcludedIngredientsListCreateView(generics.ListCreateAPIView):
     serializer_class = ExcludedIngredientsSerializer
@@ -47,7 +51,9 @@ class ExcludedIngredientsDeleteView(generics.DestroyAPIView):
 
     def get_queryset(self):
         return ExcludedIngredients.objects.filter(user_id=self.request.user)
-
+    def delete(self, request, *args, **kwargs):
+        super().delete(request, *args, **kwargs)
+        return Response({"message": "제외 목록에서 재료가 삭제되었습니다."}, status=status.HTTP_200_OK)
 
 #notifications
 @api_view(['GET'])
@@ -70,3 +76,4 @@ def expiring_soon_ingredients(request):
     ]
 
     return Response(data)
+
