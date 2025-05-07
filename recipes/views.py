@@ -40,3 +40,48 @@ class RecipeRecommendAPIView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+class RecipeRecommendWithExcludedAPIView(APIView):
+    def post(self, request):
+        try:
+            serializer = IngredientInputSerializer(data=request.data)
+            if serializer.is_valid():
+                ingredients = serializer.validated_data['ingredients']
+                excluded_ingredients = serializer.validated_data.get('excluded_ingredients', '')
+
+                recipes = Recipes.objects.all().values(
+                    'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
+                    'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
+                )
+                recipes = [recipe for recipe in recipes if recipe['rcp_ingredient']]
+                df = pd.DataFrame(recipes)
+
+                # TF-IDF 벡터화
+                tfidf = TfidfVectorizer()
+                all_text = df['rcp_ingredient'].tolist() + [ingredients]
+                tfidf_matrix = tfidf.fit_transform(all_text)
+
+                cosine_sim = linear_kernel(tfidf_matrix[-1:], tfidf_matrix[:-1])
+                sim_scores = list(enumerate(cosine_sim[0]))
+
+                # 제외할 재료가 포함된 레시피는 유사도 0으로 설정
+                excluded_words = [word.strip() for word in excluded_ingredients.split(',') if word.strip()]
+                for i, recipe in enumerate(df['rcp_ingredient']):
+                    if any(ex in recipe for ex in excluded_words):
+                        sim_scores[i] = (i, 0.0)
+
+                # 유사도 순 정렬 및 상위 100개 선택
+                sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+                top_indices = [i[0] for i in sim_scores[:100] if i[1] > 0]
+
+                result = df.iloc[top_indices][[
+                    'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
+                    'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
+                ]].to_dict(orient='records')
+                return Response(result, status=status.HTTP_200_OK)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
