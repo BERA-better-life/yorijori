@@ -5,11 +5,18 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import pandas as pd
 from .models import Recipes
+from .serializers import IngredientInputSerializerWithExcluded
 from .serializers import IngredientInputSerializer
 from .models import RecipeSteps
 from .serializers import RecipeDetailSerializer
 
 def sort_recipes(recipes, sort_by):
+    def safe_int(val, default):
+        try:
+            return int(val)
+        except (TypeError, ValueError):
+            return default
+        
     if sort_by == "rcp_cooktime_asc":
         return sorted(recipes, key=lambda x: int(x.get("rcp_cooktime", 9999)))
     elif sort_by == "rcp_cooktime_desc":
@@ -27,7 +34,7 @@ class RecipeRecommendAPIView(APIView):
             serializer = IngredientInputSerializer(data=request.data)
             if serializer.is_valid():
                 ingredients = serializer.validated_data['ingredients']
-                sort_by = serializer.validated_data.get('sort_by', '').strip()
+                sort_by = request.data.get("sort_by", "").strip()
 
                 recipes = Recipes.objects.all().values(
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword','rcp_type', 'rcp_ingredient', 
@@ -63,10 +70,11 @@ class RecipeRecommendAPIView(APIView):
 class RecipeRecommendWithExcludedAPIView(APIView):
     def post(self, request):
         try:
-            serializer = IngredientInputSerializer(data=request.data)
+            serializer = IngredientInputSerializerWithExcluded(data=request.data)
             if serializer.is_valid():
                 ingredients = serializer.validated_data['ingredients']
                 excluded_ingredients = serializer.validated_data.get('excluded_ingredients', '')
+                sort_by = request.data.get("sort_by", "").strip()
 
                 recipes = Recipes.objects.all().values(
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
@@ -97,6 +105,8 @@ class RecipeRecommendWithExcludedAPIView(APIView):
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
                     'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
                 ]].to_dict(orient='records')
+                result = sort_recipes(result, sort_by)
+
                 return Response(result, status=status.HTTP_200_OK)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
