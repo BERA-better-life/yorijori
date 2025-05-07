@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import expiration_alerts_view
+from .views import send_expiration_notifications
 
 urlpatterns = [
-    path("api/expiration/alerts/<int:user_id>", expiration_alerts_view),
+    path('notify/', send_expiration_notifications, name='send_expiration_notifications'),
 ]
