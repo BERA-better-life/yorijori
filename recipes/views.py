@@ -27,7 +27,7 @@ class RecipeRecommendAPIView(APIView):
                 cosine_sim = linear_kernel(tfidf_matrix[-1:], tfidf_matrix[:-1])
                 sim_scores = list(enumerate(cosine_sim[0]))
                 sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-                top_indices = [i[0] for i in sim_scores[:10]]
+                top_indices = [i[0] for i in sim_scores[:100]]
 
                 # 결과 반환 시 필요한 모든 필드를 포함시킴
                 result = df.iloc[top_indices][[
