@@ -1,3 +1,5 @@
+from favorite.models import Bookmarks
+from .serializers import BookmarksSerializer
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -36,4 +38,35 @@ from .serializers import LikesSerializer
 def liked_recipes(request):
     likes = Likes.objects.filter(user_id=request.user)
     serializer = LikesSerializer(likes, many=True)
+    return Response(serializer.data)
+
+
+# Bookmark toggle view
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_bookmark(request, recipe_id):
+    user = request.user
+    try:
+        recipe = Recipes.objects.get(pk=recipe_id)
+    except Recipes.DoesNotExist:
+        return Response({"error": "Recipe not found."}, status=404)
+
+    bookmark, created = Bookmarks.objects.get_or_create(user_id=user, rcp_number=recipe)
+
+    if not created:
+        bookmark.delete()
+        bookmarked = False
+    else:
+        bookmarked = True
+
+    return Response({
+        "bookmarked": bookmarked
+    })
+
+# Bookmarked recipes list view
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def bookmarked_recipes(request):
+    bookmarks = Bookmarks.objects.filter(user_id=request.user)
+    serializer = BookmarksSerializer(bookmarks, many=True)
     return Response(serializer.data)
