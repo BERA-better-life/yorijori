@@ -1,6 +1,4 @@
 from rest_framework import serializers
 
-class RecipeSerializer(serializers.Serializer):
-    rcp_number = serializers.IntegerField()
-    rcp_name = serializers.CharField(max_length=200)
-    rcp_picture = serializers.CharField(max_length=500)
+class IngredientInputSerializer(serializers.Serializer):
+    ingredients = serializers.CharField(help_text="입력 재료들을 쉼표로 구분한 문자열")
