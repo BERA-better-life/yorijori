@@ -17,8 +17,8 @@ SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
 # DEBUG 모드 설정 (운영 환경에서는 False로 설정해야 함)
 DEBUG = os.getenv("DJANGO_DEBUG", "True") == "True"
 
-# ALLOWED_HOSTS 설정 (배포 시 도메인 추가 필요)
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split()
+# ALLOWED_HOSTS 설정 (배포 시 도메인 추가 필요) 
+ALLOWED_HOSTS = ALLOWED_HOSTS = ['*'] # 0503 배포용 os.getenv("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split()
 
 AUTH_USER_MODEL = 'users.Users'
 # MySQL 데이터베이스 설정
@@ -76,7 +76,7 @@ ROOT_URLCONF = 'yorijori.urls'
 WSGI_APPLICATION = 'yorijori.wsgi.application'
 
 # STATIC & MEDIA 설정
-STATIC_URL = '/static/'
+URL = '/static/'
 MEDIA_URL = '/media/'
 #STATICFILES_DIRS = [BASE_DIR / "static"]
 
