@@ -20,7 +20,9 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls),
     path('api/users/', include('users.urls')),
-    path('api/recipes/', include('recipes.urls')), #4/28 wh 수정 path('recipes/', include('recipes.urls')),
+
+    path('api/recipes/', include('recipes.urls')),
+
     path('api/ingredients/', include('ingredients.urls')),
     path('api/shopping/', include('shopping.urls')),
     path('api/favorite/', include('favorite.urls')),
