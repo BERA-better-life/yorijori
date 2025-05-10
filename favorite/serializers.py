@@ -12,7 +12,8 @@ class LikesSerializer(serializers.ModelSerializer):
 class BookmarksSerializer(serializers.ModelSerializer):
     recipe_id = serializers.IntegerField(source='rcp_number_id')
     recipe_title = serializers.CharField(source='rcp_number.rcp_name')
+    recipe_image = serializers.CharField(source='rcp_number.rcp_picture')
 
     class Meta:
         model = Bookmarks
-        fields = ['recipe_id', 'recipe_title']
+        fields = ['recipe_id', 'recipe_title', 'recipe_image']
