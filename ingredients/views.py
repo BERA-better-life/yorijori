@@ -2,8 +2,9 @@ from django.shortcuts import render
 from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .models import UserIngredients, ExcludedIngredients
-from .serializers import UserIngredientsSerializer, ExcludedIngredientsSerializer
+from .models import UserIngredients, ExcludedIngredients, Ingredients
+from .serializers import UserIngredientsSerializer, ExcludedIngredientsSerializer, IngredientsSerializer
+from rest_framework.permissions import AllowAny
 
 
 from rest_framework.decorators import api_view, permission_classes #notification
@@ -76,4 +77,11 @@ def expiring_soon_ingredients(request):
     ]
 
     return Response(data)
+
+
+# List all ingredients (public)
+class AllIngredientsListView(generics.ListAPIView):
+    queryset = Ingredients.objects.all()
+    serializer_class = IngredientsSerializer
+    permission_classes = [AllowAny]
 
