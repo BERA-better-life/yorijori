@@ -125,3 +125,6 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
     "USER_ID_FIELD": "user_id",
 }
+
+# 정적 파일 설정 추가
+STATIC_URL = '/static/'
