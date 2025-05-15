@@ -9,6 +9,7 @@ from .serializers import IngredientInputSerializerWithExcluded
 from .serializers import IngredientInputSerializer
 from .models import RecipeSteps
 from .serializers import RecipeDetailSerializer
+from django.db.models import Count
 
 def sort_recipes(recipes, sort_by):
     def safe_int(val, default):
@@ -25,6 +26,16 @@ def sort_recipes(recipes, sort_by):
         return sorted(recipes, key=lambda x: int(x.get("rcp_ingredient_cnt", 999)))
     elif sort_by == "rcp_ingredient_cnt_desc":
         return sorted(recipes, key=lambda x: int(x.get("rcp_ingredient_cnt", 0)), reverse=True)
+    elif sort_by == "likes_desc": # 좋아요 많은 순 정렬 (0515 아현)
+        from favorite.models import Likes
+        like_counts = Likes.objects.values('rcp_number').annotate(count=Count('rcp_number'))
+        like_count_map = {item['rcp_number']: item['count'] for item in like_counts}
+        return sorted(recipes, key=lambda x: like_count_map.get(x['rcp_number'], 0), reverse=True)
+    elif sort_by == "likes_asc": # 좋아요 적은 순 정렬 (0515 아현)
+        from favorite.models import Likes
+        like_counts = Likes.objects.values('rcp_number').annotate(count=Count('rcp_number'))
+        like_count_map = {item['rcp_number']: item['count'] for item in like_counts}
+        return sorted(recipes, key=lambda x: like_count_map.get(x['rcp_number'], 0))
     return recipes  # sort_by가 없거나 잘못된 경우, 기본 순서로 반환
 
 
