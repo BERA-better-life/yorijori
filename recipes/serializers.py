@@ -2,7 +2,9 @@ from rest_framework import serializers
 from .models import RecipeSteps
 
 class IngredientInputSerializer(serializers.Serializer):
-    ingredients = serializers.CharField(help_text="입력 재료들을 쉼표로 구분한 문자열")
+    ingredients = serializers.CharField(required=False, allow_blank=True)
+    rcp_keyword = serializers.ListField(child=serializers.CharField(), required=False)
+    rcp_type = serializers.ListField(child=serializers.CharField(), required=False)
     sort_by = serializers.CharField(required=False, allow_blank=True)
 
 class IngredientInputSerializerWithExcluded(serializers.Serializer):

@@ -1,7 +1,5 @@
 from django.db import models  
-from ingredients.models import Ingredients
-
-
+from ingredients.models import Ingredients, UserIngredients
 
 
 class Recipes(models.Model):

@@ -4,12 +4,24 @@ from rest_framework import status
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 import pandas as pd
-from .models import Recipes
+from .models import Recipes, RecipeSteps, UserIngredients
 from .serializers import IngredientInputSerializerWithExcluded
 from .serializers import IngredientInputSerializer
-from .models import RecipeSteps
 from .serializers import RecipeDetailSerializer
 from django.db.models import Count
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_ingredients(request):
+    user = request.user
+    user_ingredients = UserIngredients.objects.filter(user_id=user).select_related('ingredient_id')
+    ingredient_names = [ui.ingredient_id.ingredient_name for ui in user_ingredients if ui.ingredient_id]
+    return Response({"ingredients": ingredient_names})
 
 def sort_recipes(recipes, sort_by):
     def safe_int(val, default):
@@ -18,13 +30,13 @@ def sort_recipes(recipes, sort_by):
         except (TypeError, ValueError):
             return default
         
-    if sort_by == "rcp_cooktime_asc":
+    if sort_by == "rcp_cooktime_asc": # 조리시간 짧은 순
         return sorted(recipes, key=lambda x: int(x.get("rcp_cooktime", 9999)))
-    elif sort_by == "rcp_cooktime_desc":
+    elif sort_by == "rcp_cooktime_desc": # 조리시간 오래걸리는 순
         return sorted(recipes, key=lambda x: int(x.get("rcp_cooktime", 0)), reverse=True)
-    elif sort_by == "rcp_ingredient_cnt_asc":
+    elif sort_by == "rcp_ingredient_cnt_asc": # 재료 수 적은 순
         return sorted(recipes, key=lambda x: int(x.get("rcp_ingredient_cnt", 999)))
-    elif sort_by == "rcp_ingredient_cnt_desc":
+    elif sort_by == "rcp_ingredient_cnt_desc": # 재료 수 많은 순
         return sorted(recipes, key=lambda x: int(x.get("rcp_ingredient_cnt", 0)), reverse=True)
     elif sort_by == "likes_desc": # 좋아요 많은 순 정렬 (0515 아현)
         from favorite.models import Likes
@@ -40,12 +52,35 @@ def sort_recipes(recipes, sort_by):
 
 
 class RecipeRecommendAPIView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         try:
             serializer = IngredientInputSerializer(data=request.data)
             if serializer.is_valid():
-                ingredients = serializer.validated_data['ingredients']
+                # 1) 클라이언트가 직접 입력한 재료 (옵션)
+                ingredients = serializer.validated_data.get('ingredients', '').strip()
+
+                # 2) 로그인 했으면 재료 없을 때 저장 재료 불러오기
+                if request.user.is_authenticated and not ingredients:
+                    user_ingredients = UserIngredients.objects.filter(user_id=request.user).select_related('ingredient_id')
+                    ingredients_list = [ui.ingredient_id.ingredient_name for ui in user_ingredients if ui.ingredient_id]
+                    ingredients = ", ".join(ingredients_list)
+
+                 # 3) 재료가 여전히 없으면 에러 반환
+                if not ingredients:
+                    return Response({"error": "재료가 입력되지 않았고, 저장된 재료도 없습니다."}, status=status.HTTP_400_BAD_REQUEST)
+
                 sort_by = request.data.get("sort_by", "").strip()
+
+                # 다중 선택 필터 리스트 처리
+                rcp_keywords = request.data.get("rcp_keyword", [])
+                rcp_types = request.data.get("rcp_type", [])
+
+                if isinstance(rcp_keywords, str):
+                    rcp_keywords = [rcp_keywords]
+                if isinstance(rcp_types, str):
+                    rcp_types = [rcp_types]
 
                 recipes = Recipes.objects.all().values(
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword','rcp_type', 'rcp_ingredient', 
@@ -67,8 +102,15 @@ class RecipeRecommendAPIView(APIView):
                     'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
                 ]].to_dict(orient='records')
 
-                result = sort_recipes(result, sort_by)
+                #다중 조건 필터 적용 (and 조건)
+                if rcp_keywords and rcp_types:
+                    result = [r for r in result if r.get('rcp_keyword') in rcp_keywords and r.get('rcp_type') in rcp_types]
+                elif rcp_keywords:
+                    result = [r for r in result if r.get('rcp_keyword') in rcp_keywords]
+                elif rcp_types:
+                    result = [r for r in result if r.get('rcp_type') in rcp_types]
 
+                result = sort_recipes(result, sort_by)
 
                 return Response(result, status=status.HTTP_200_OK)
 
@@ -86,6 +128,15 @@ class RecipeRecommendWithExcludedAPIView(APIView):
                 ingredients = serializer.validated_data['ingredients']
                 excluded_ingredients = serializer.validated_data.get('excluded_ingredients', '')
                 sort_by = request.data.get("sort_by", "").strip()
+
+                # 다중 선택 필터 리스트 처리
+                rcp_keywords = request.data.get("rcp_keyword", [])
+                rcp_types = request.data.get("rcp_type", [])
+
+                if isinstance(rcp_keywords, str):
+                    rcp_keywords = [rcp_keywords]
+                if isinstance(rcp_types, str):
+                    rcp_types = [rcp_types]
 
                 recipes = Recipes.objects.all().values(
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
@@ -116,6 +167,15 @@ class RecipeRecommendWithExcludedAPIView(APIView):
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
                     'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
                 ]].to_dict(orient='records')
+
+                #다중 조건 필터 적용 (and 조건)
+                if rcp_keywords and rcp_types:
+                    result = [r for r in result if r.get('rcp_keyword') in rcp_keywords and r.get('rcp_type') in rcp_types]
+                elif rcp_keywords:
+                    result = [r for r in result if r.get('rcp_keyword') in rcp_keywords]
+                elif rcp_types:
+                    result = [r for r in result if r.get('rcp_type') in rcp_types]
+                
                 result = sort_recipes(result, sort_by)
 
                 return Response(result, status=status.HTTP_200_OK)
