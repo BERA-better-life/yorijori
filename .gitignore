@@ -179,3 +179,5 @@ myvenv/
 echo ".env" >> .gitignore
 
 api_test.http
+# Ignore settings.py
+yorijori/settings.py
