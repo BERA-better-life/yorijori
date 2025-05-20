@@ -11,10 +11,11 @@ EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 @api_view(['POST'])
 def send_expiration_notifications(request):
     today = date.today()
-    target_date = today + timedelta(days=3)
+    target_date = today + timedelta(days=7)
+
 
     user_ingredients = UserIngredients.objects.select_related('user_id', 'ingredient_id').filter(
-        expiration_date=target_date
+    expiration_date__range=(today, target_date)
     )
 
     notified_users = {}
@@ -36,7 +37,7 @@ def send_expiration_notifications(request):
 
     for user_id, info in notified_users.items():
         ingredients_list = ', '.join(info['ingredients'])
-        message = f"다음 재료의 유통기한이 3일 남았어요: {ingredients_list}"
+        message = f"다음 재료의 유통기한이 7일 이내예요: {ingredients_list}"
 
         payload = {
             "to": info["token"],
