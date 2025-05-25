@@ -102,6 +102,9 @@ class RecipeRecommendAPIView(APIView):
                     'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
                 ]].to_dict(orient='records')
 
+                # 필터링 추가 (0523)
+                result = [r for r in result if '손질' not in r['rcp_name'] and '보관' not in r['rcp_name']]
+
                 #다중 조건 필터 적용 (and 조건)
                 if rcp_keywords and rcp_types:
                     result = [r for r in result if r.get('rcp_keyword') in rcp_keywords and r.get('rcp_type') in rcp_types]
@@ -142,7 +145,7 @@ class RecipeRecommendWithExcludedAPIView(APIView):
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
                     'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
                 )
-                recipes = [recipe for recipe in recipes if recipe['rcp_ingredient']]
+                recipes = [recipe for recipe in recipes if recipe['rcp_ingredient']]       
                 df = pd.DataFrame(recipes)
 
                 # TF-IDF 벡터화
@@ -167,6 +170,9 @@ class RecipeRecommendWithExcludedAPIView(APIView):
                     'rcp_number', 'rcp_name', 'rcp_method', 'rcp_keyword', 'rcp_type', 'rcp_ingredient', 
                     'rcp_picture', 'rcp_cooktime', 'rcp_laststep', 'rcp_ingredient_cnt'
                 ]].to_dict(orient='records')
+
+                # 필터링 추가 (0523)
+                result = [r for r in result if '손질' not in r['rcp_name'] and '보관' not in r['rcp_name']]
 
                 #다중 조건 필터 적용 (and 조건)
                 if rcp_keywords and rcp_types:
