@@ -142,7 +142,6 @@ class ExcludedIngredientsView(APIView):
 
 #notifications
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def expiring_soon_ingredients(request):
     today = date.today()
     three_days_later = today + timedelta(days=3)

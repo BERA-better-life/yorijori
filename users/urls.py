@@ -12,7 +12,7 @@ urlpatterns = [
     path('me', UserInfoView.as_view(), name='user-info'),
     path('logout', LogoutView.as_view(), name='logout'),
     path('all', AllUsersView.as_view(), name='all-users'),
-    path('expo-token/', save_expo_token, name='save_expo_token'), #notification
+    path('expo-token', save_expo_token, name='save_expo_token'), #notification
 ]
 
 
