@@ -144,12 +144,12 @@ class ExcludedIngredientsView(APIView):
 @api_view(['GET'])
 def expiring_soon_ingredients(request):
     today = date.today()
-    three_days_later = today + timedelta(days=3)
+    seven_days_later = today + timedelta(days=7)
 
     user_ingredients = UserIngredients.objects.filter(
-        user_id=request.user, 
-        expiration_date__range=(today, three_days_later)
-    ).select_related('ingredient_id')  
+        user_id=request.user,
+        expiration_date__range=(today, seven_days_later)
+    ).select_related('ingredient_id') 
 
     data = [
         {
@@ -160,6 +160,7 @@ def expiring_soon_ingredients(request):
     ]
 
     return Response(data)
+
 
 
 # List all ingredients (public)
