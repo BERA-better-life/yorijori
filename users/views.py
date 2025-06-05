@@ -1,3 +1,5 @@
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +17,11 @@ class RegisterView(APIView):
     def post(self, request):
         data = request.data
         try:
+            # 이메일 형식 검증
+            try:
+                validate_email(data['email'])
+            except ValidationError:
+                return Response({"error": "올바른 형식의 이메일을 입력하세요."}, status=status.HTTP_400_BAD_REQUEST)
             user = Users.objects.create(
                 email=data['email'],
                 username=data['username'],
